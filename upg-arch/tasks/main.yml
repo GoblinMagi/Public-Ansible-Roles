@@ -1,0 +1,11 @@
+---
+- name: Update all with Pacman
+  community.general.pacman:
+    update_cache: true
+    upgrade: true
+  register: result
+  changed_when: result.msg.find('Nothing') == -1
+  notify:
+    - Reboot
+    - Send ntfy.sh update
+    - Request reboot for local connection

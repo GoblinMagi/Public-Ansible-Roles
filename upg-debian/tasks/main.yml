@@ -1,0 +1,16 @@
+---
+- name: Update all with apt
+  ansible.builtin.apt:
+    update_cache: true
+    name: "*"
+    state: latest
+    only_upgrade: true
+
+  notify:
+    - Reboot
+    - Send ntfy.sh update
+
+- name: Clean cache
+  ansible.builtin.apt:
+    autoclean: true
+    clean: true

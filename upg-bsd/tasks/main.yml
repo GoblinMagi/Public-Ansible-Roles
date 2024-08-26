@@ -1,0 +1,8 @@
+---
+- name: Update all with pkg
+  community.general.pkgng:
+    name: "*"
+    state: latest
+  notify:
+    - Reboot
+    - Send ntfy.sh update

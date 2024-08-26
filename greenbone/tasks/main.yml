@@ -1,0 +1,29 @@
+---
+- name: Create greenbone user
+  ansible.builtin.user:
+    name: "{{ greenbone_gvm_user }}"
+    state: present
+    comment: Greenbone scan user
+    create_home: true
+    password_lock: true
+    system: true
+    password: '!'
+    update_password: always
+
+- name: Create .ssh directory for greenbone user
+  ansible.builtin.file:
+    path: "/home/{{ greenbone_gvm_user }}/.ssh"
+    state: directory
+    owner: "{{ greenbone_gvm_user }}"
+    group: "{{ greenbone_gvm_user }}"
+    mode: '0700'
+
+- name: Copy authorized_keys
+  ansible.builtin.lineinfile:
+    path: "/home/{{ greenbone_gvm_user }}/.ssh/authorized_keys"
+    owner: "{{ greenbone_gvm_user }}"
+    group: "{{ greenbone_gvm_user }}"
+    mode: '0600'
+    line: "{{ greenbone_pubkey }}"
+    create: true
+    state: present

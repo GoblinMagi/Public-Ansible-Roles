@@ -1,0 +1,135 @@
+---
+- name: Create .ssh directory
+  ansible.builtin.file:
+    path: "{{ home_dir }}/.ssh"
+    owner: "{{ ansible_user }}"
+    group: "{{ user_group }}"
+    state: directory
+    mode: "0700"
+
+- name: Copy SSH keys
+  ansible.builtin.copy:
+    src: ~/.ssh/authorized_keys
+    dest: "{{ home_dir }}/.ssh/authorized_keys"
+    owner: "{{ ansible_user }}"
+    group: "{{ user_group }}"
+    mode: "0600"
+
+- name: Disable SSH password authentication
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?PasswordAuthentication yes"
+    line: "PasswordAuthentication no"
+  notify: Restart sshd
+
+- name: Set Allowed Users
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?AllowUsers (.*)*$"
+    line: "AllowUsers {{ ansible_user }} greenbone"
+  notify: Restart sshd
+
+- name: Disable root login
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?PermitRootLogin (yes|prohibit-password)"
+    line: "PermitRootLogin no"
+  notify: Restart sshd
+
+- name: Set public key authentication
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?PubkeyAuthentication no"
+    line: "PubkeyAuthentication yes"
+  notify: Restart sshd
+
+- name: Disable weak MACs
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?MAC"
+    line: "MACs hmac-sha2-256,hmac-sha2-512,umac-128@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com"
+  notify: Restart sshd
+
+- name: Disable X11 Forwarding
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?X11Forwarding yes"
+    line: "X11Forwarding no"
+  notify: Restart sshd
+
+- name: Disable TCP forwarding
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?AllowTcpForwarding yes"
+    line: "AllowTcpForwarding no"
+  notify: Restart sshd
+
+- name: Ignore Rhosts
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?IgnoreRhosts no"
+    line: "IgnoreRhosts yes"
+  notify: Restart sshd
+
+- name: Disable PermitUserEnvironment
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?PermitUserEnvironment yes"
+    line: "PermitUserEnvironment no"
+  notify: Restart sshd
+
+- name: Set ClientAliveInterval
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?ClientAliveInterval(.*)*$"
+    line: "ClientAliveInterval 300"
+  notify: Restart sshd
+
+- name: Set ClientAliveCountMax
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?ClientAliveCountMax(.*)*$"
+    line: "ClientAliveCountMax 0"
+  notify: Restart sshd
+
+- name: Set LoginGraceTime
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?LoginGraceTime(.*)*$"
+    line: "LoginGraceTime 60"
+  notify: Restart sshd
+
+- name: Set MaxSessions
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?MaxSessions.*"
+    line: "MaxSessions 4"
+  notify: Restart sshd
+
+- name: Set MaxAuthTries
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?MaxAuthTries(.*)*$"
+    line: "MaxAuthTries 4"
+  notify: Restart sshd
+
+- name: Set MaxStartups
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?MaxStartups(.*)*$"
+    line: "MaxStartups 10:30:60"
+  notify: Restart sshd
+
+- name: Set SysLogFacility
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?SysLogFacility(.*)*$"
+    line: "SysLogFacility Auth"
+  notify: Restart sshd
+
+- name: Set LogLevel
+  ansible.builtin.lineinfile:
+    dest: "{{ ssh_dir }}"
+    regexp: "(^#)?LogLevel(.*)*$"
+    line: "LogLevel VERBOSE"
+  notify: Restart sshd

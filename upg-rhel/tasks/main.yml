@@ -1,0 +1,7 @@
+---
+- name: Upgrade system with DNF
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+  notify:
+    - Reboot

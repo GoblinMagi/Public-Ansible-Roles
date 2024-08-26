@@ -1,0 +1,18 @@
+---
+- name: Reboot
+  ansible.builtin.reboot:
+  when: ansible_connection != "local"
+
+- name: Send ntfy.sh update
+  ansible.builtin.uri:
+    url: " {{ ntfy_server }} "
+    method: POST
+    body: "{{ ansible_hostname }} has been updated!"
+  when: ansible_connection != "local"
+
+- name: Request reboot for local connection
+  ansible.builtin.uri:
+    url: " {{ ntfy_server }} "
+    method: POST
+    body: "{{ ansible_hostname }} updated, please reboot!"
+  when: ansible_connection == "local"

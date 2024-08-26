@@ -1,0 +1,11 @@
+---
+- name: Update homebrew
+  community.general.homebrew:
+    update_homebrew: true
+
+- name: Update all homebrew packages
+  community.general.homebrew:
+    upgrade_all: true
+    upgrade_options: "{{ brew_options }}"
+  notify:
+    - Send ntfy.sh update

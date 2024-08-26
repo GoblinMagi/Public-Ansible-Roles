@@ -1,0 +1,80 @@
+---
+- name: Install Chronyd on arch systems
+  community.general.pacman:
+    name: chrony
+    state: present
+  when: ansible_distribution == 'Archlinux'
+
+- name: Install Chronyd on debian systems
+  ansible.builtin.apt:
+    name: chrony
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Disable systemd-timesync if it is enabled
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: stopped
+    enabled: false
+
+- name: Disable ntpd if it is enabled
+  block:
+    - name: Disable ntpd
+      ansible.builtin.service:
+        name: ntpd
+        state: stopped
+        enabled: false
+  rescue:
+    - name: Print message if not installed
+      ansible.builtin.debug:
+        msg: "ntpd not installed on '{{ ansible_hostname }}'"
+
+- name: Enable and start chronyd
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+
+- name: Configure chrony.conf
+  ansible.builtin.blockinfile:
+    path: "{{ chrony_conf }}"
+    owner: root
+    group: root
+    backup: true
+    mode: '644'
+    create: true
+    block: |
+      server 0.au.pool.ntp.org iburst xleave presend 9
+      server 1.au.pool.ntp.org iburst xleave presend 9
+      server 2.au.pool.ntp.org iburst xleave presend 9
+      server 3.au.pool.ntp.org iburst xleave presend 9
+
+      driftfile /var/lib/chrony/drift
+      makestep 1.0 3
+      hwtimestamp *
+      rtcfile /var/lib/chrony/rtc
+      rtcautotrim 30
+
+- name: Remove servers that are not specified above
+  ansible.builtin.lineinfile:
+    path: "{{ chrony_conf }}"
+    state: absent
+    regexp: 'server (?![0-9].au.pool.ntp.org)'
+  notify:
+    - Restart chronyd
+
+- name: Remove servers that are not specified above
+  ansible.builtin.lineinfile:
+    path: "{{ chrony_conf }}"
+    state: absent
+    regexp: 'pool (?![0-9].au.pool.ntp.org)'
+  notify:
+    - Restart chronyd
+
+- name: Disable rtcsync
+  ansible.builtin.lineinfile:
+    path: "{{ chrony_conf }}"
+    state: absent
+    regexp: 'rtcsync'
+  notify:
+    - Restart chronyd

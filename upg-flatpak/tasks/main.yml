@@ -1,0 +1,5 @@
+---
+- name: Update all Flatpak packages
+  community.general.flatpak:
+    name: "{{ flatpak_packages }}"
+    state: latest
